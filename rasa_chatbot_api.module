@@ -1,0 +1,92 @@
+<?php
+
+/**
+ * @file
+ * Contains rasa_chatbot_api.module.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function rasa_chatbot_api_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#rasa_chatbot_api':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Provide integration with RASA NLU and Facebook Messenger') . '</p>';
+      return $output;
+  }
+}
+
+/**
+ * Implements hook_menu().
+ */
+function rasa_chatbot_api_menu() {
+  $items = array();
+  //Configuration for python url
+  $items['rasa_chatbot_api/config'] = array(
+      'title' => 'Configuration for rasa_chatbot_api(python endpoint)',
+      'type' => MENU_NORMAL_ITEM,
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('rasa_chatbot_api_form'),
+      'access callback' => 'user_has_role',
+      'access arguments' => array('administrator'),
+  );
+  return $items;
+}
+
+/**
+ *
+ * @global type $user
+ * @param type $roles
+ * @return boolean
+ */
+function user_has_role($roles = array()) {
+  global $user;
+  foreach ($roles as $role) {
+    if (in_array($role, $user->roles)) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Implements hook_form().
+ */
+function rasa_chatbot_api_form($form, &$form_state) {
+  $form['below_threshold_message'] = array(
+      '#type' => 'textarea',
+      '#title' => 'Message to ',
+      '#default_value' => variable_get('below_threshold_message')
+  );
+  $form['maximum_threshold'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Maximum threshold',
+      '#default_value' => variable_get('maximum_threshold')
+  );
+  $form['minimum_threshold'] = array(
+      '#type' => 'textfield',
+      '#title' => 'Maximum threshold',
+      '#default_value' => variable_get('maximum_threshold')
+  );
+  $form['python_url'] = array(
+      '#type' => 'textarea',
+      '#title' => 'Python url',
+      '#default_value' => variable_get('python_url')
+  );
+  $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Save configs'),
+  );
+  return form;
+}
+
+function rasa_chatbot_api_form_submit($form, &$form_state) {
+  $val = array('maximum_threshold', 'minimum_threshold', 'below_threshold_message', 'python_url');
+  foreach ($form_state['values'] as $key => $value) {
+    if (in_array($key, $val)) {
+      variable_set($key, $value);
+    }
+  }
+}
